@@ -1,0 +1,83 @@
+/* ── Google Fonts: UI chrome ─────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Outfit:wght@300;400;500;600;700&display=swap');
+
+@import "tailwindcss";
+
+/* ── CSS Custom Properties — light mode (default) ───────────────────────── */
+:root {
+  --bg:           #f5f4f2;
+  --surface:      #ffffff;
+  --surface-2:    #f0eeec;
+  --border:       #e2e0dd;
+  --text-primary: #1a1918;
+  --text-secondary: #6b6a68;
+  --accent:       #118dff;
+  --accent-subtle: #e8f2ff;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* ── Dark mode ───────────────────────────────────────────────────────────── */
+[data-theme="dark"] {
+  --bg:           #18171a;
+  --surface:      #232228;
+  --surface-2:    #2d2c32;
+  --border:       #3c3b42;
+  --text-primary: #f0eff4;
+  --text-secondary: #9c9ba5;
+  --accent:       #479ef5;
+  --accent-subtle: #1a2d3d;
+}
+
+/* ── Base styles ─────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  font-family: 'DM Sans', 'Outfit', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text-primary);
+}
+
+/* ── Scrollbar styling ───────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* ── Utility: smooth transitions on theme switch ─────────────────────────── */
+*, *::before, *::after {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+/* Opt out of transitions for interactive elements (feels laggy) */
+button, input, select, textarea, [class*="animate"] {
+  transition: none;
+}
+
+/* ── Number input: hide native arrows ───────────────────────────────────── */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
