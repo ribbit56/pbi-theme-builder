@@ -90,7 +90,7 @@ const ThemePreview = memo(function ThemePreview({ state, previewBg = '#ffffff', 
   const colWidths = [tW * 0.45, tW * 0.35, tW * 0.20]
 
   return (
-    <div className="w-full rounded-2xl overflow-hidden border shadow-sm"
+    <div className="w-full h-full flex flex-col rounded-2xl overflow-hidden border shadow-sm"
       style={{ borderColor: 'var(--border)' }}>
 
       {/* Preview label bar */}
@@ -140,7 +140,8 @@ const ThemePreview = memo(function ThemePreview({ state, previewBg = '#ffffff', 
       {/* SVG dashboard */}
       <svg
         viewBox={`0 0 ${W} ${H}`}
-        className="w-full"
+        className="flex-1 min-h-0 w-full"
+        preserveAspectRatio="xMidYMid meet"
         style={{ background: previewBg, display: 'block' }}
         aria-label="Theme preview dashboard"
       >

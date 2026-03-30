@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Palette, RotateCcw } from 'lucide-react'
+import { Palette, RotateCcw, ImageIcon, Sliders, Type, Download } from 'lucide-react'
 
 import { useTheme } from './hooks/useTheme.js'
 import { useColorExtraction } from './hooks/useColorExtraction.js'
@@ -17,22 +17,24 @@ import ColorSwatch from './components/ColorSwatch.jsx'
 import HarmonyGenerator from './components/HarmonyGenerator.jsx'
 import JsonPanel from './components/JsonPanel.jsx'
 
-const HEADER_HEIGHT = 64
+const HEADER_HEIGHT = 56
+const TAB_HEIGHT = 44
+
+const TABS = [
+  { id: 'extract', label: 'Extract',  Icon: ImageIcon },
+  { id: 'colors',  label: 'Colors',   Icon: Sliders   },
+  { id: 'fonts',   label: 'Fonts',    Icon: Type      },
+  { id: 'export',  label: 'Export',   Icon: Download  },
+]
 
 export default function App() {
   const { state, dispatch, mode, toggleMode } = useTheme()
   const { extractedColors, isExtracting, error: extractError, extractFromFile } = useColorExtraction()
 
-  // Background of the preview canvas (independent of theme colours)
-  const [previewBg, setPreviewBg] = useState('#ffffff')
-
-  // Global font — applied to all text classes at once
-  const [globalFont, setGlobalFont] = useState('Segoe UI')
-
-  // Track which color was last clicked in suggestions (used as base for ComplementarySuggestions)
+  const [activeTab, setActiveTab]       = useState('extract')
+  const [previewBg, setPreviewBg]       = useState('#ffffff')
+  const [globalFont, setGlobalFont]     = useState('Segoe UI')
   const [suggestionBase, setSuggestionBase] = useState(state.dataColors[0])
-
-  // When a suggested/extracted color is chosen, open a small role-assign popover
   const [pendingColor, setPendingColor] = useState(null)
 
   const handleColorSelect = (hex) => {
@@ -71,12 +73,15 @@ export default function App() {
     dispatch({ type: 'APPLY_IMAGE_THEME', payload: patch })
   }
 
+  // Height of the controls panel — 40% of space below header+tabbar
+  const controlsHeight = `calc((100vh - ${HEADER_HEIGHT + TAB_HEIGHT}px) * 0.50)`
+
   return (
     <div className="h-screen flex flex-col overflow-hidden" style={{ background: 'var(--bg)' }}>
 
-      {/* ── Header ──────────────────────────────────────────────────────── */}
+      {/* ── Header ──────────────────────────────────────────────────── */}
       <header
-        className="sticky top-0 z-40 flex items-center gap-3 px-6 border-b"
+        className="flex-shrink-0 z-40 flex items-center gap-3 px-5 border-b"
         style={{
           height: HEADER_HEIGHT,
           background: 'var(--surface)',
@@ -84,24 +89,23 @@ export default function App() {
           boxShadow: 'var(--shadow-sm)',
         }}
       >
-        {/* Logo / brand */}
-        <div className="flex items-center gap-2 mr-2 flex-shrink-0">
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center"
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="w-6 h-6 rounded-md flex items-center justify-center"
             style={{ background: 'var(--accent)' }}>
-            <Palette size={14} color="white" />
+            <Palette size={12} color="white" />
           </div>
-          <span className="font-semibold text-sm hidden sm:block" style={{ color: 'var(--text-secondary)', fontFamily: 'Outfit, sans-serif' }}>
+          <span className="font-semibold text-sm hidden sm:block"
+            style={{ color: 'var(--text-secondary)', fontFamily: 'Outfit, sans-serif' }}>
             PBI Theme Builder
           </span>
         </div>
 
-        {/* Theme name */}
         <input
           type="text"
           value={state.name}
           onChange={e => dispatch({ type: 'SET_NAME', payload: e.target.value })}
           placeholder="Theme name…"
-          className="flex-1 max-w-xs px-3 py-1.5 rounded-lg text-sm font-semibold border outline-none transition-colors"
+          className="flex-1 max-w-xs px-3 py-1.5 rounded-lg text-sm font-semibold border outline-none"
           style={{
             background: 'var(--surface-2)',
             borderColor: 'var(--border)',
@@ -112,109 +116,137 @@ export default function App() {
         />
 
         <div className="flex items-center gap-2 ml-auto">
-          {/* Reset */}
           <button
             onClick={() => dispatch({ type: 'RESET' })}
             title="Reset to defaults"
-            className="p-2 rounded-lg transition-colors hover:opacity-70"
+            className="p-1.5 rounded-lg transition-colors hover:opacity-70"
             style={{ color: 'var(--text-secondary)', background: 'var(--surface-2)', border: '1px solid var(--border)' }}
           >
-            <RotateCcw size={14} />
+            <RotateCcw size={13} />
           </button>
-
           <ThemeToggle mode={mode} onToggle={toggleMode} />
           <ExportButton state={state} />
         </div>
       </header>
 
-      {/* ── Main layout ─────────────────────────────────────────────────── */}
-      <main className="flex flex-1 overflow-hidden">
+      {/* ── Tab bar ─────────────────────────────────────────────────── */}
+      <div
+        className="flex-shrink-0 flex items-center gap-1 px-4 border-b"
+        style={{
+          height: TAB_HEIGHT,
+          background: 'var(--surface)',
+          borderColor: 'var(--border)',
+        }}
+      >
+        {TABS.map(({ id, label, Icon }) => {
+          const active = activeTab === id
+          return (
+            <button
+              key={id}
+              onClick={() => setActiveTab(id)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
+              style={{
+                color: active ? 'var(--accent)' : 'var(--text-secondary)',
+                background: active ? 'var(--accent-subtle)' : 'transparent',
+                border: active ? '1px solid var(--accent-subtle)' : '1px solid transparent',
+              }}
+            >
+              <Icon size={13} />
+              {label}
+            </button>
+          )
+        })}
+      </div>
 
-        {/* Left panel — controls, scrollable */}
-        <div
-          className="w-[420px] flex-shrink-0 overflow-y-auto"
-          style={{ borderRight: '1px solid var(--border)' }}
-        >
-          <div className="p-6 space-y-8">
+      {/* ── Controls panel (top ~40%) ────────────────────────────────── */}
+      <div
+        className="flex-shrink-0 overflow-y-auto border-b"
+        style={{
+          height: controlsHeight,
+          borderColor: 'var(--border)',
+          background: 'var(--bg)',
+        }}
+      >
+        <div className="p-5">
+          {activeTab === 'extract' && (
+            <div className="space-y-5">
 
-            {/* Image upload */}
-            <ImageUploader onExtract={extractFromFile} isExtracting={isExtracting} />
+              {/* Image + extracted colors side by side */}
+              <div className="flex gap-4 items-start">
+                {/* Upload zone — fixed square-ish width */}
+                <div className="w-80 flex-shrink-0">
+                  <ImageUploader onExtract={extractFromFile} isExtracting={isExtracting} />
+                  {extractError && (
+                    <p className="text-xs mt-1" style={{ color: '#ef4444' }}>{extractError}</p>
+                  )}
+                </div>
 
-            {/* Extraction error — shown even when no colors were extracted */}
-            {extractError && (
-              <p className="text-xs px-1" style={{ color: '#ef4444' }}>{extractError}</p>
-            )}
-
-            {/* Extracted colors row */}
-            {extractedColors.length > 0 && (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between gap-2 flex-wrap">
-                  <h3 style={{ color: 'var(--text-primary)' }} className="text-sm font-semibold uppercase tracking-widest">
-                    Extracted Colors
-                  </h3>
-                  <div className="flex gap-1.5">
-                    <button
-                      onClick={applyExtractedAsDataColors}
-                      title="Copy extracted colors into the 8 series slots only"
-                      className="text-xs px-2 py-1 rounded-md font-medium transition-colors hover:opacity-80"
-                      style={{ background: 'var(--accent-subtle)', color: 'var(--accent)' }}
-                    >
-                      Series only
-                    </button>
-                    <button
-                      onClick={applyFullThemeFromImage}
-                      title="Intelligently assign extracted colors to all theme roles"
-                      className="text-xs px-2 py-1 rounded-md font-medium transition-colors hover:opacity-80"
-                      style={{ background: 'var(--accent)', color: '#fff' }}
-                    >
-                      Apply full theme
-                    </button>
+                {/* Extracted colors grid */}
+                {extractedColors.length > 0 ? (
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <h3 className="text-xs font-semibold uppercase tracking-widest"
+                        style={{ color: 'var(--text-secondary)' }}>
+                        Extracted Colors
+                      </h3>
+                      <div className="flex gap-1.5">
+                        <button
+                          onClick={applyExtractedAsDataColors}
+                          className="text-xs px-2 py-1 rounded-md font-medium transition-colors hover:opacity-80"
+                          style={{ background: 'var(--accent-subtle)', color: 'var(--accent)' }}
+                        >
+                          Series only
+                        </button>
+                        <button
+                          onClick={applyFullThemeFromImage}
+                          className="text-xs px-2 py-1 rounded-md font-medium transition-colors hover:opacity-80"
+                          style={{ background: 'var(--accent)', color: '#fff' }}
+                        >
+                          Apply full theme
+                        </button>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-4 gap-2">
+                      {extractedColors.map((color, i) => (
+                        <ColorSwatch key={color + i} color={color} size="sm" onAdd={() => handleColorSelect(color)} />
+                      ))}
+                    </div>
                   </div>
-                </div>
-                <div className="flex gap-3 flex-wrap">
-                  {extractedColors.map((color, i) => (
-                    <ColorSwatch
-                      key={color + i}
-                      color={color}
-                      size="sm"
-                      onAdd={() => handleColorSelect(color)}
-                    />
-                  ))}
-                </div>
+                ) : (
+                  <div className="flex-1 flex items-center justify-center rounded-xl border-2 border-dashed h-44"
+                    style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
+                    <p className="text-xs text-center px-4">Upload an image to extract colors</p>
+                  </div>
+                )}
               </div>
-            )}
 
-            {/* Color assign popover */}
-            {pendingColor && (
-              <ColorAssignPanel
-                color={pendingColor}
-                onAssignData={assignToDataColor}
-                onAssignRole={assignToRole}
-                onDismiss={() => setPendingColor(null)}
+              <HarmonyGenerator
+                onApply={colors => dispatch({ type: 'SET_ALL_DATA_COLORS', payload: colors })}
               />
-            )}
 
-            {/* Complementary suggestions — always visible, uses last-touched color */}
-            <ComplementarySuggestions
-              baseColor={suggestionBase}
-              onColorSelect={handleColorSelect}
-            />
+              {pendingColor && (
+                <ColorAssignPanel
+                  color={pendingColor}
+                  onAssignData={assignToDataColor}
+                  onAssignRole={assignToRole}
+                  onDismiss={() => setPendingColor(null)}
+                />
+              )}
 
-            {/* Harmony generator */}
-            <HarmonyGenerator
-              onApply={colors => dispatch({ type: 'SET_ALL_DATA_COLORS', payload: colors })}
-            />
+              <ComplementarySuggestions
+                baseColor={suggestionBase}
+                onColorSelect={handleColorSelect}
+              />
+            </div>
+          )}
 
-            {/* Palette roles */}
+          {activeTab === 'colors' && (
             <PaletteSection state={state} dispatch={dispatch} />
+          )}
 
-            {/* Font selection */}
+          {activeTab === 'fonts' && (
             <div className="space-y-4">
-              <h3 style={{ color: 'var(--text-primary)' }} className="text-sm font-semibold uppercase tracking-widest">
-                Typography
-              </h3>
-
-              {/* Apply one font to all text classes */}
+              {/* Apply one font to all */}
               <div className="flex gap-2 items-center p-3 rounded-xl border"
                 style={{ background: 'var(--surface-2)', borderColor: 'var(--border)' }}>
                 <select
@@ -241,49 +273,40 @@ export default function App() {
                 </button>
               </div>
 
-              {['callout', 'title', 'header', 'label'].map(cls => (
-                <FontSelector
-                  key={cls}
-                  textClass={cls}
-                  value={state.textClasses[cls]}
-                  onChange={(patch) =>
-                    Object.entries(patch).forEach(([field, value]) =>
-                      dispatch({ type: 'SET_TEXT_CLASS', payload: { cls, field, value } })
-                    )
-                  }
-                />
-              ))}
+              <div className="grid grid-cols-2 gap-3">
+                {['callout', 'title', 'header', 'label'].map(cls => (
+                  <FontSelector
+                    key={cls}
+                    textClass={cls}
+                    value={state.textClasses[cls]}
+                    onChange={(patch) =>
+                      Object.entries(patch).forEach(([field, value]) =>
+                        dispatch({ type: 'SET_TEXT_CLASS', payload: { cls, field, value } })
+                      )
+                    }
+                  />
+                ))}
+              </div>
             </div>
+          )}
 
-            {/* Raw JSON panel */}
-            <JsonPanel state={state} />
-
-          </div>
+          {activeTab === 'export' && (
+            <div className="space-y-4">
+              <JsonPanel state={state} />
+            </div>
+          )}
         </div>
+      </div>
 
-        {/* Right panel — sticky preview */}
-        <div
-          className="flex-1 overflow-hidden"
-          style={{
-            position: 'sticky',
-            top: HEADER_HEIGHT,
-            height: `calc(100vh - ${HEADER_HEIGHT}px)`,
-            alignSelf: 'flex-start',
-          }}
-        >
-          <div className="h-full overflow-auto p-6">
-            <ThemePreview state={state} previewBg={previewBg} onPreviewBgChange={setPreviewBg} />
-          </div>
-        </div>
+      {/* ── Preview panel (bottom ~60%) ──────────────────────────────── */}
+      <div className="flex-1 overflow-hidden flex flex-col min-h-0 p-4" style={{ background: 'var(--bg)' }}>
+        <ThemePreview state={state} previewBg={previewBg} onPreviewBgChange={setPreviewBg} />
+      </div>
 
-      </main>
     </div>
   )
 }
 
-/**
- * Small inline panel for assigning a pending color to a specific role or series slot.
- */
 function ColorAssignPanel({ color, onAssignData, onAssignRole, onDismiss }) {
   const roles = ['background', 'foreground', 'tableAccent', 'maximum', 'center', 'minimum', 'null']
 
@@ -292,23 +315,26 @@ function ColorAssignPanel({ color, onAssignData, onAssignRole, onDismiss }) {
       style={{ background: 'var(--surface)', borderColor: 'var(--accent)', boxShadow: 'var(--shadow-md)' }}>
 
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg flex-shrink-0 border" style={{ background: color, borderColor: 'var(--border)' }} />
+        <div className="w-7 h-7 rounded-lg flex-shrink-0 border"
+          style={{ background: color, borderColor: 'var(--border)' }} />
         <div className="flex-1">
-          <p style={{ color: 'var(--text-primary)' }} className="text-sm font-semibold">Assign {color.toUpperCase()}</p>
-          <p style={{ color: 'var(--text-secondary)' }} className="text-xs">Choose where to use this color</p>
+          <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+            Assign {color.toUpperCase()}
+          </p>
+          <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>Choose where to use this color</p>
         </div>
-        <button onClick={onDismiss} style={{ color: 'var(--text-secondary)' }} className="text-xs hover:opacity-70">✕</button>
+        <button onClick={onDismiss} className="text-xs hover:opacity-70" style={{ color: 'var(--text-secondary)' }}>✕</button>
       </div>
 
-      <div className="space-y-2">
-        <p style={{ color: 'var(--text-secondary)' }} className="text-xs font-medium uppercase tracking-wide">Series slot</p>
+      <div className="space-y-1.5">
+        <p className="text-xs font-medium uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>Series slot</p>
         <div className="flex gap-1.5 flex-wrap">
           {[0,1,2,3,4,5,6,7].map(i => (
             <button
               key={i}
               onClick={() => onAssignData(i)}
+              className="w-7 h-7 rounded-lg text-xs font-semibold hover:opacity-80 transition-colors"
               style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
-              className="w-8 h-8 rounded-lg text-xs font-semibold hover:opacity-80 transition-colors"
             >
               {i + 1}
             </button>
@@ -316,15 +342,15 @@ function ColorAssignPanel({ color, onAssignData, onAssignRole, onDismiss }) {
         </div>
       </div>
 
-      <div className="space-y-2">
-        <p style={{ color: 'var(--text-secondary)' }} className="text-xs font-medium uppercase tracking-wide">Role</p>
+      <div className="space-y-1.5">
+        <p className="text-xs font-medium uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>Role</p>
         <div className="flex gap-1.5 flex-wrap">
           {roles.map(role => (
             <button
               key={role}
               onClick={() => onAssignRole(role)}
-              style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
               className="px-2 py-1 rounded-md text-xs font-medium hover:opacity-80 transition-colors capitalize"
+              style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
             >
               {role}
             </button>

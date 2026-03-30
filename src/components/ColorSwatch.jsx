@@ -23,7 +23,7 @@ export default function ColorSwatch({ color, label, onEdit, onAdd, onDelete, siz
   const needsDarkText = isLightColor(color)
   const textColor = needsDarkText ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.9)'
 
-  const blockSize = size === 'sm' ? 'h-14' : 'h-20'
+  const blockSize = size === 'sm' ? 'h-20' : 'h-28'
 
   return (
     <div className="flex flex-col gap-1" style={{ minWidth: size === 'sm' ? 64 : 80 }}>

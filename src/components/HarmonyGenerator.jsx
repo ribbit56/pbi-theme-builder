@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { Wand2 } from 'lucide-react'
 import { generateHarmony } from '../utils/colorHelpers'
+import ColorSwatch from './ColorSwatch.jsx'
 
 const HARMONY_TYPES = [
   { value: 'analogous',            label: 'Analogous' },
@@ -56,15 +57,10 @@ export default function HarmonyGenerator({ onApply }) {
         ))}
       </div>
 
-      {/* 8-color preview strip */}
-      <div className="flex gap-1 rounded-lg overflow-hidden h-8">
+      {/* 8-color swatch grid */}
+      <div className="grid grid-cols-4 gap-2">
         {colors.map((color, i) => (
-          <div
-            key={i}
-            className="flex-1"
-            style={{ background: color }}
-            title={color.toUpperCase()}
-          />
+          <ColorSwatch key={i} color={color} size="sm" />
         ))}
       </div>
 
