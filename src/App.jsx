@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Palette, RotateCcw, ImageIcon, Sliders, Type, Download } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Palette, RotateCcw, ImageIcon, Sliders, Type, Download, Shuffle } from 'lucide-react'
 
 import { useTheme } from './hooks/useTheme.js'
 import { useColorExtraction } from './hooks/useColorExtraction.js'
@@ -36,6 +36,12 @@ export default function App() {
   const [globalFont, setGlobalFont]     = useState('Segoe UI')
   const [suggestionBase, setSuggestionBase] = useState(state.dataColors[0])
   const [pendingColor, setPendingColor] = useState(null)
+  const [displayedExtracted, setDisplayedExtracted] = useState([])
+
+  // Keep displayedExtracted in sync when a new image is extracted
+  useEffect(() => {
+    setDisplayedExtracted(extractedColors)
+  }, [extractedColors])
 
   const handleColorSelect = (hex) => {
     setSuggestionBase(hex)
@@ -53,12 +59,16 @@ export default function App() {
   }
 
   const applyExtractedAsDataColors = () => {
-    if (extractedColors.length === 0) return
+    if (displayedExtracted.length === 0) return
     const filled = [
-      ...extractedColors.slice(0, 8),
-      ...state.dataColors.slice(extractedColors.length, 8),
+      ...displayedExtracted.slice(0, 8),
+      ...state.dataColors.slice(displayedExtracted.length, 8),
     ]
     dispatch({ type: 'SET_ALL_DATA_COLORS', payload: filled })
+  }
+
+  const shuffleExtracted = () => {
+    setDisplayedExtracted(prev => [...prev].sort(() => Math.random() - 0.5))
   }
 
   const applyFontToAll = () => {
@@ -68,8 +78,8 @@ export default function App() {
   }
 
   const applyFullThemeFromImage = () => {
-    if (extractedColors.length === 0) return
-    const patch = buildThemeFromColors(extractedColors)
+    if (displayedExtracted.length === 0) return
+    const patch = buildThemeFromColors(displayedExtracted)
     dispatch({ type: 'APPLY_IMAGE_THEME', payload: patch })
   }
 
@@ -182,7 +192,7 @@ export default function App() {
                 </div>
 
                 {/* Extracted colors grid */}
-                {extractedColors.length > 0 ? (
+                {displayedExtracted.length > 0 ? (
                   <div className="flex-1 space-y-2">
                     <div className="flex items-center justify-between gap-2">
                       <h3 className="text-xs font-semibold uppercase tracking-widest"
@@ -190,6 +200,14 @@ export default function App() {
                         Extracted Colors
                       </h3>
                       <div className="flex gap-1.5">
+                        <button
+                          title="Shuffle extracted colors"
+                          onClick={shuffleExtracted}
+                          className="p-1 rounded-md transition-colors hover:opacity-70"
+                          style={{ color: 'var(--text-secondary)', background: 'var(--surface-2)', border: '1px solid var(--border)' }}
+                        >
+                          <Shuffle size={12} />
+                        </button>
                         <button
                           onClick={applyExtractedAsDataColors}
                           className="text-xs px-2 py-1 rounded-md font-medium transition-colors hover:opacity-80"
@@ -207,7 +225,7 @@ export default function App() {
                       </div>
                     </div>
                     <div className="grid grid-cols-4 gap-2">
-                      {extractedColors.map((color, i) => (
+                      {displayedExtracted.map((color, i) => (
                         <ColorSwatch key={color + i} color={color} size="sm" onAdd={() => handleColorSelect(color)} />
                       ))}
                     </div>
