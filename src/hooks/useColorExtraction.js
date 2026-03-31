@@ -49,6 +49,8 @@ function extractPalette(img, count = 8) {
 
   const sorted = Object.values(buckets).sort((a, b) => b.count - a.count)
 
+  const totalPixels = Object.values(buckets).reduce((s, b) => s + b.count, 0) || 1
+
   // Greedily pick the most-frequent colours that are visually distinct
   const chosen = []
   for (const bucket of sorted) {
@@ -58,12 +60,19 @@ function extractPalette(img, count = 8) {
     const b = Math.round(bucket.b / bucket.count)
 
     const tooClose = chosen.some(
-      ([er, eg, eb]) => Math.abs(r - er) + Math.abs(g - eg) + Math.abs(b - eb) < SIMILARITY_L1
+      ({ rgb: [er, eg, eb] }) => Math.abs(r - er) + Math.abs(g - eg) + Math.abs(b - eb) < SIMILARITY_L1
     )
-    if (!tooClose) chosen.push([r, g, b])
+    if (!tooClose) chosen.push({ rgb: [r, g, b], count: bucket.count })
   }
 
-  return chosen.length > 0 ? chosen : null
+  if (chosen.length === 0) return null
+
+  // Normalise proportions against the largest bucket so the biggest always fills 100%
+  const maxCount = chosen[0].count
+  return chosen.map(({ rgb: [r, g, b], count }) => {
+    const h = n => n.toString(16).padStart(2, '0')
+    return { hex: '#' + h(r) + h(g) + h(b), proportion: count / maxCount }
+  })
 }
 
 export function useColorExtraction() {
@@ -85,11 +94,7 @@ export function useColorExtraction() {
         if (!palette) {
           setError('Could not extract colours — try a different image.')
         } else {
-          const hexColors = palette.map(([r, g, b]) => {
-            const h = n => n.toString(16).padStart(2, '0')
-            return '#' + h(r) + h(g) + h(b)
-          })
-          setExtractedColors(hexColors)
+          setExtractedColors(palette) // array of { hex, proportion }
         }
       } catch (e) {
         setError('Colour extraction failed: ' + e.message)

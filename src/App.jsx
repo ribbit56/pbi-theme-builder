@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Palette, RotateCcw, ImageIcon, Sliders, Type, Download, Shuffle } from 'lucide-react'
+import { Palette, RotateCcw, ImageIcon, Sliders, Type, Download, Shuffle, Wand2 } from 'lucide-react'
 
 import { useTheme } from './hooks/useTheme.js'
 import { useColorExtraction } from './hooks/useColorExtraction.js'
@@ -14,6 +14,7 @@ import PaletteSection from './components/PaletteSection.jsx'
 import FontSelector from './components/FontSelector.jsx'
 import ThemePreview from './components/ThemePreview.jsx'
 import ColorSwatch from './components/ColorSwatch.jsx'
+import ExtractedColorGrid from './components/ExtractedColorGrid.jsx'
 import HarmonyGenerator from './components/HarmonyGenerator.jsx'
 import JsonPanel from './components/JsonPanel.jsx'
 
@@ -21,10 +22,11 @@ const HEADER_HEIGHT = 56
 const TAB_HEIGHT = 44
 
 const TABS = [
-  { id: 'extract', label: 'Extract',  Icon: ImageIcon },
-  { id: 'colors',  label: 'Colors',   Icon: Sliders   },
-  { id: 'fonts',   label: 'Fonts',    Icon: Type      },
-  { id: 'export',  label: 'Export',   Icon: Download  },
+  { id: 'extract',  label: 'Extract',  Icon: ImageIcon },
+  { id: 'harmony',  label: 'Harmony',  Icon: Wand2     },
+  { id: 'colors',   label: 'Colors',   Icon: Sliders   },
+  { id: 'fonts',    label: 'Fonts',    Icon: Type      },
+  { id: 'export',   label: 'Export',   Icon: Download  },
 ]
 
 export default function App() {
@@ -37,11 +39,35 @@ export default function App() {
   const [suggestionBase, setSuggestionBase] = useState(state.dataColors[0])
   const [pendingColor, setPendingColor] = useState(null)
   const [displayedExtracted, setDisplayedExtracted] = useState([])
+  const [excludedColors, setExcludedColors] = useState(new Set())
 
   // Keep displayedExtracted in sync when a new image is extracted
   useEffect(() => {
     setDisplayedExtracted(extractedColors)
+    setExcludedColors(new Set())
   }, [extractedColors])
+
+  const toggleExcludeColor = (hex) => {
+    setExcludedColors(prev => {
+      const next = new Set(prev)
+      next.has(hex) ? next.delete(hex) : next.add(hex)
+      return next
+    })
+  }
+
+  const activeExtracted = displayedExtracted.filter(({ hex }) => !excludedColors.has(hex))
+
+  // resolvedState is what the preview, JSON panel, and export always see.
+  // Computed inline (no memoization) so it is always fresh on every render.
+  // When extracted colours are loaded, dataColors is derived from active
+  // (non-excluded) swatches so exclusions are reflected immediately.
+  const activeHexes = activeExtracted.map(c => c.hex)
+  const resolvedState = activeHexes.length > 0
+    ? {
+        ...state,
+        dataColors: Array.from({ length: 8 }, (_, i) => activeHexes[i % activeHexes.length]),
+      }
+    : state
 
   const handleColorSelect = (hex) => {
     setSuggestionBase(hex)
@@ -59,11 +85,9 @@ export default function App() {
   }
 
   const applyExtractedAsDataColors = () => {
-    if (displayedExtracted.length === 0) return
-    const filled = [
-      ...displayedExtracted.slice(0, 8),
-      ...state.dataColors.slice(displayedExtracted.length, 8),
-    ]
+    if (activeExtracted.length === 0) return
+    const hexes = activeExtracted.map(c => c.hex)
+    const filled = Array.from({ length: 8 }, (_, i) => hexes[i % hexes.length])
     dispatch({ type: 'SET_ALL_DATA_COLORS', payload: filled })
   }
 
@@ -78,8 +102,8 @@ export default function App() {
   }
 
   const applyFullThemeFromImage = () => {
-    if (displayedExtracted.length === 0) return
-    const patch = buildThemeFromColors(displayedExtracted)
+    if (activeExtracted.length === 0) return
+    const patch = buildThemeFromColors(activeExtracted.map(c => c.hex))
     dispatch({ type: 'APPLY_IMAGE_THEME', payload: patch })
   }
 
@@ -135,7 +159,7 @@ export default function App() {
             <RotateCcw size={13} />
           </button>
           <ThemeToggle mode={mode} onToggle={toggleMode} />
-          <ExportButton state={state} />
+          <ExportButton state={resolvedState} />
         </div>
       </header>
 
@@ -224,11 +248,13 @@ export default function App() {
                         </button>
                       </div>
                     </div>
-                    <div className="grid grid-cols-4 gap-2">
-                      {displayedExtracted.map((color, i) => (
-                        <ColorSwatch key={color + i} color={color} size="sm" onAdd={() => handleColorSelect(color)} />
-                      ))}
-                    </div>
+                    <ExtractedColorGrid
+                      colors={displayedExtracted}
+                      onReorder={setDisplayedExtracted}
+                      onColorSelect={handleColorSelect}
+                      excluded={excludedColors}
+                      onToggleExclude={toggleExcludeColor}
+                    />
                   </div>
                 ) : (
                   <div className="flex-1 flex items-center justify-center rounded-xl border-2 border-dashed h-44"
@@ -238,6 +264,11 @@ export default function App() {
                 )}
               </div>
 
+            </div>
+          )}
+
+          {activeTab === 'harmony' && (
+            <div className="space-y-5">
               <HarmonyGenerator
                 onApply={colors => dispatch({ type: 'SET_ALL_DATA_COLORS', payload: colors })}
               />
@@ -310,7 +341,7 @@ export default function App() {
 
           {activeTab === 'export' && (
             <div className="space-y-4">
-              <JsonPanel state={state} />
+              <JsonPanel state={resolvedState} />
             </div>
           )}
         </div>
@@ -318,7 +349,7 @@ export default function App() {
 
       {/* ── Preview panel (bottom ~60%) ──────────────────────────────── */}
       <div className="flex-1 overflow-hidden flex flex-col min-h-0 p-4" style={{ background: 'var(--bg)' }}>
-        <ThemePreview state={state} previewBg={previewBg} onPreviewBgChange={setPreviewBg} />
+        <ThemePreview state={resolvedState} previewBg={previewBg} onPreviewBgChange={setPreviewBg} />
       </div>
 
     </div>
