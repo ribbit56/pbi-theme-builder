@@ -168,76 +168,74 @@ export default function App() {
         })}
       </div>
 
-      {/* ── Controls panel (top ~40%) ────────────────────────────────── */}
+      {/* ── Controls panel (top ~50%) ────────────────────────────────── */}
       <div
-        className="flex-shrink-0 overflow-y-auto border-b"
+        className={`flex-shrink-0 border-b ${activeTab === 'extract' ? 'overflow-hidden' : 'overflow-y-auto'}`}
         style={{
           height: controlsHeight,
           borderColor: 'var(--border)',
           background: 'var(--bg)',
         }}
       >
-        <div className="p-5">
+        <div className={activeTab === 'extract' ? 'p-5 h-full box-border flex flex-col' : 'p-5'}>
           {activeTab === 'extract' && (
-            <div className="space-y-5">
+            <div className="flex-1 flex gap-4 min-h-0">
 
-              {/* Image + extracted colors side by side */}
-              <div className="flex gap-4 items-start">
-                {/* Upload zone — fixed square-ish width */}
-                <div className="w-80 flex-shrink-0">
-                  <ImageUploader onExtract={extractFromFile} isExtracting={isExtracting} />
-                  {extractError && (
-                    <p className="text-xs mt-1" style={{ color: '#ef4444' }}>{extractError}</p>
-                  )}
-                </div>
+              {/* Upload zone */}
+              <div className="w-96 flex-shrink-0 flex flex-col min-h-0">
+                <ImageUploader onExtract={extractFromFile} isExtracting={isExtracting} />
+                {extractError && (
+                  <p className="text-xs mt-1" style={{ color: '#ef4444' }}>{extractError}</p>
+                )}
+              </div>
 
-                {/* Extracted colors grid */}
-                {displayedExtracted.length > 0 ? (
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-center justify-between gap-2">
-                      <h3 className="text-xs font-semibold uppercase tracking-widest"
-                        style={{ color: 'var(--text-secondary)' }}>
-                        Extracted Colors
-                      </h3>
-                      <div className="flex gap-1.5">
-                        <button
-                          title="Shuffle extracted colors"
-                          onClick={shuffleExtracted}
-                          className="p-1 rounded-md transition-colors hover:opacity-70"
-                          style={{ color: 'var(--text-secondary)', background: 'var(--surface-2)', border: '1px solid var(--border)' }}
-                        >
-                          <Shuffle size={12} />
-                        </button>
-                        <button
-                          onClick={applyExtractedAsDataColors}
-                          className="text-xs px-2 py-1 rounded-md font-medium transition-colors hover:opacity-80"
-                          style={{ background: 'var(--accent-subtle)', color: 'var(--accent)' }}
-                        >
-                          Series only
-                        </button>
-                        <button
-                          onClick={applyFullThemeFromImage}
-                          className="text-xs px-2 py-1 rounded-md font-medium transition-colors hover:opacity-80"
-                          style={{ background: 'var(--accent)', color: '#fff' }}
-                        >
-                          Apply full theme
-                        </button>
-                      </div>
+              {/* Extracted colors grid */}
+              {displayedExtracted.length > 0 ? (
+                <div className="flex-1 flex flex-col gap-2 min-h-0">
+                  <div className="flex items-center justify-between gap-2 flex-shrink-0">
+                    <h3 className="text-xs font-semibold uppercase tracking-widest"
+                      style={{ color: 'var(--text-secondary)' }}>
+                      Extracted Colors
+                    </h3>
+                    <div className="flex gap-1.5">
+                      <button
+                        title="Shuffle extracted colors"
+                        onClick={shuffleExtracted}
+                        className="p-1 rounded-md transition-colors hover:opacity-70"
+                        style={{ color: 'var(--text-secondary)', background: 'var(--surface-2)', border: '1px solid var(--border)' }}
+                      >
+                        <Shuffle size={12} />
+                      </button>
+                      <button
+                        onClick={applyExtractedAsDataColors}
+                        className="text-xs px-2 py-1 rounded-md font-medium transition-colors hover:opacity-80"
+                        style={{ background: 'var(--accent-subtle)', color: 'var(--accent)' }}
+                      >
+                        Series only
+                      </button>
+                      <button
+                        onClick={applyFullThemeFromImage}
+                        className="text-xs px-2 py-1 rounded-md font-medium transition-colors hover:opacity-80"
+                        style={{ background: 'var(--accent)', color: '#fff' }}
+                      >
+                        Apply full theme
+                      </button>
                     </div>
+                  </div>
+                  <div className="flex-1 min-h-0">
                     <ExtractedColorGrid
                       colors={displayedExtracted}
                       onReorder={setDisplayedExtracted}
                       onColorSelect={handleColorSelect}
                     />
                   </div>
-                ) : (
-                  <div className="flex-1 flex items-center justify-center rounded-xl border-2 border-dashed h-44"
-                    style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
-                    <p className="text-xs text-center px-4">Upload an image to extract colors</p>
-                  </div>
-                )}
-              </div>
-
+                </div>
+              ) : (
+                <div className="flex-1 flex items-center justify-center rounded-xl border-2 border-dashed"
+                  style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
+                  <p className="text-xs text-center px-4">Upload an image to extract colors</p>
+                </div>
+              )}
             </div>
           )}
 

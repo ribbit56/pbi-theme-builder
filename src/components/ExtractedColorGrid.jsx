@@ -48,7 +48,7 @@ export default function ExtractedColorGrid({ colors, onReorder, onColorSelect })
   }
 
   return (
-    <div className="grid grid-cols-4 gap-2">
+    <div className="grid grid-cols-4 grid-rows-2 gap-2 h-full">
       {colors.map(({ hex, proportion }, i) => {
         const isDragTarget = dragOverIdx === i && dragFromIdx !== i
 
@@ -67,9 +67,9 @@ export default function ExtractedColorGrid({ colors, onReorder, onColorSelect })
               boxShadow: isDragTarget ? '0 0 0 2px var(--accent)' : '0 1px 3px rgba(0,0,0,0.08)',
             }}
           >
-            {/* Colour block */}
+            {/* Colour block — fills available card height */}
             <div
-              className="relative h-20 flex flex-col justify-between p-1"
+              className="relative flex-1 min-h-0 flex flex-col justify-between p-1"
               style={{ background: hex }}
             >
               {/* Drag handle */}

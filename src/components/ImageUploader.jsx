@@ -50,13 +50,13 @@ export default function ImageUploader({ onExtract, isExtracting }) {
   }
 
   return (
-    <div>
+    <div className="h-full">
       {preview ? (
-        <div className="relative rounded-xl overflow-hidden border" style={{ borderColor: 'var(--border)' }}>
+        <div className="relative rounded-xl overflow-hidden border h-full" style={{ borderColor: 'var(--border)' }}>
           <img
             src={preview}
             alt="Uploaded"
-            className="w-full h-[264px] object-cover"
+            className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 flex items-end p-2"
             style={{ background: 'linear-gradient(transparent, rgba(0,0,0,0.5))' }}>
@@ -85,7 +85,7 @@ export default function ImageUploader({ onExtract, isExtracting }) {
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
-          className="flex flex-col items-center justify-center gap-3 h-[264px] rounded-xl border-2 border-dashed cursor-pointer transition-colors"
+          className="flex flex-col items-center justify-center gap-3 h-full rounded-xl border-2 border-dashed cursor-pointer transition-colors"
           style={{
             borderColor: isDragOver ? 'var(--accent)' : 'var(--border)',
             background: isDragOver ? 'color-mix(in srgb, var(--accent) 8%, transparent)' : 'var(--surface-2)',
