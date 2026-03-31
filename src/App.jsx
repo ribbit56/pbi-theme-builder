@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Palette, RotateCcw, ImageIcon, Sliders, Type, Download, Shuffle, Wand2 } from 'lucide-react'
 
 import { useTheme } from './hooks/useTheme.js'
@@ -68,6 +68,11 @@ export default function App() {
         dataColors: Array.from({ length: 8 }, (_, i) => activeHexes[i % activeHexes.length]),
       }
     : state
+
+  // Ref always holds the latest resolvedState — read by ExportButton at click time
+  // so it never captures a stale closure value regardless of render timing.
+  const resolvedStateRef = useRef(resolvedState)
+  resolvedStateRef.current = resolvedState
 
   const handleColorSelect = (hex) => {
     setSuggestionBase(hex)
@@ -159,7 +164,7 @@ export default function App() {
             <RotateCcw size={13} />
           </button>
           <ThemeToggle mode={mode} onToggle={toggleMode} />
-          <ExportButton state={resolvedState} />
+          <ExportButton getState={() => resolvedStateRef.current} />
         </div>
       </header>
 
