@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { Wand2, Copy, Check } from 'lucide-react'
 import { generateHarmony } from '../utils/colorHelpers'
 
@@ -14,6 +14,7 @@ export default function HarmonyGenerator({ onApply }) {
   const [seed, setSeed] = useState('#118DFF')
   const [type, setType] = useState('analogous')
   const [copiedHex, setCopiedHex] = useState(null)
+  const inputRef = useRef(null)
 
   const colors = useMemo(() => generateHarmony(seed, type), [seed, type])
 
@@ -27,51 +28,53 @@ export default function HarmonyGenerator({ onApply }) {
   return (
     <div className="flex gap-4 h-full">
 
-      {/* Left: controls */}
-      <div className="w-96 flex-shrink-0 flex flex-col gap-5">
-        <div className="space-y-2">
-          <h3 className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--text-secondary)' }}>
-            Seed Color
-          </h3>
-          <div className="flex items-center gap-3">
-            <input
-              type="color"
-              value={seed}
-              onChange={e => setSeed(e.target.value)}
-              className="w-9 h-9 rounded-lg border cursor-pointer p-0.5"
-              style={{ borderColor: 'var(--border)', background: 'var(--surface)' }}
-            />
-            <code className="text-sm font-mono font-medium" style={{ color: 'var(--text)' }}>
+      {/* Left: seed color block + controls */}
+      <div className="w-96 flex-shrink-0 flex flex-col gap-3 h-full">
+
+        {/* Big seed color display — click to open picker */}
+        <div
+          className="flex-1 min-h-0 relative rounded-xl overflow-hidden border cursor-pointer"
+          style={{ background: seed, borderColor: 'var(--border)' }}
+          onClick={() => inputRef.current?.click()}
+          title="Click to change seed color"
+        >
+          <div className="absolute inset-0 flex items-end p-3"
+            style={{ background: 'linear-gradient(transparent 60%, rgba(0,0,0,0.45))' }}>
+            <span className="text-white font-mono font-semibold text-sm drop-shadow">
               {seed.toUpperCase()}
-            </code>
+            </span>
           </div>
         </div>
+        <input
+          ref={inputRef}
+          type="color"
+          value={seed}
+          onChange={e => setSeed(e.target.value)}
+          className="hidden"
+        />
 
-        <div className="space-y-2">
-          <h3 className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--text-secondary)' }}>
-            Harmony Type
-          </h3>
-          <div className="flex gap-1.5 flex-wrap">
-            {HARMONY_TYPES.map(h => (
-              <button
-                key={h.value}
-                onClick={() => setType(h.value)}
-                className="px-2.5 py-1 rounded-md text-xs font-medium transition-colors"
-                style={{
-                  background: type === h.value ? 'var(--accent)' : 'var(--surface-2)',
-                  color:      type === h.value ? '#fff' : 'var(--text-secondary)',
-                  border:     '1px solid var(--border)',
-                }}
-              >
-                {h.label}
-              </button>
-            ))}
-          </div>
+        {/* Harmony type buttons */}
+        <div className="flex gap-1.5 flex-wrap flex-shrink-0">
+          {HARMONY_TYPES.map(h => (
+            <button
+              key={h.value}
+              onClick={() => setType(h.value)}
+              className="px-2.5 py-1 rounded-md text-xs font-medium transition-colors"
+              style={{
+                background: type === h.value ? 'var(--accent)' : 'var(--surface-2)',
+                color:      type === h.value ? '#fff' : 'var(--text-secondary)',
+                border:     '1px solid var(--border)',
+              }}
+            >
+              {h.label}
+            </button>
+          ))}
         </div>
 
+        {/* Apply button */}
         <button
           onClick={() => onApply(colors)}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors hover:opacity-80 w-fit"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors hover:opacity-80 w-fit flex-shrink-0"
           style={{ background: 'var(--accent)', color: '#fff' }}
         >
           <Wand2 size={12} />
