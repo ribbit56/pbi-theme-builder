@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { GripVertical } from 'lucide-react'
+import { GripVertical, Copy, Check } from 'lucide-react'
 
 /**
  * Displays extracted colours as a draggable grid with proportion bars.
@@ -12,7 +12,15 @@ import { GripVertical } from 'lucide-react'
 export default function ExtractedColorGrid({ colors, onReorder, onColorSelect }) {
   const [dragFromIdx, setDragFromIdx] = useState(null)
   const [dragOverIdx, setDragOverIdx] = useState(null)
+  const [copiedHex, setCopiedHex] = useState(null)
   const dragNode = useRef(null)
+
+  const copyHex = (hex, e) => {
+    e.stopPropagation()
+    navigator.clipboard.writeText(hex.toUpperCase())
+    setCopiedHex(hex)
+    setTimeout(() => setCopiedHex(h => h === hex ? null : h), 1500)
+  }
 
   const handleDragStart = (e, i) => {
     setDragFromIdx(i)
@@ -80,10 +88,20 @@ export default function ExtractedColorGrid({ colors, onReorder, onColorSelect })
               </button>
             </div>
 
-            {/* Proportion bar + hex label */}
+            {/* Proportion bar + hex label + copy */}
             <div className="px-1.5 pt-1 pb-1.5 space-y-1" style={{ background: 'var(--surface-2)' }}>
-              <div className="text-[9px] font-mono leading-none truncate" style={{ color: 'var(--text-secondary)' }}>
-                {hex.toUpperCase()}
+              <div className="flex items-center justify-between gap-1">
+                <div className="text-[11px] font-mono font-medium leading-none truncate" style={{ color: 'var(--text)' }}>
+                  {hex.toUpperCase()}
+                </div>
+                <button
+                  onClick={e => copyHex(hex, e)}
+                  title="Copy hex"
+                  className="flex-shrink-0 rounded transition-colors hover:opacity-70"
+                  style={{ color: copiedHex === hex ? '#16a34a' : 'var(--text-secondary)' }}
+                >
+                  {copiedHex === hex ? <Check size={11} /> : <Copy size={11} />}
+                </button>
               </div>
               <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
                 <div
