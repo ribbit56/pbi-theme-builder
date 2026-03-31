@@ -9,7 +9,6 @@ import { FONT_LIST } from './utils/constants.js'
 import ThemeToggle from './components/ThemeToggle.jsx'
 import ExportButton from './components/ExportButton.jsx'
 import ImageUploader from './components/ImageUploader.jsx'
-import ComplementarySuggestions from './components/ComplementarySuggestions.jsx'
 import PaletteSection from './components/PaletteSection.jsx'
 import FontSelector from './components/FontSelector.jsx'
 import ThemePreview from './components/ThemePreview.jsx'
@@ -36,29 +35,12 @@ export default function App() {
   const [activeTab, setActiveTab]       = useState('extract')
   const [previewBg, setPreviewBg]       = useState('#ffffff')
   const [globalFont, setGlobalFont]     = useState('Segoe UI')
-  const [suggestionBase, setSuggestionBase] = useState(state.dataColors[0])
-  const [pendingColor, setPendingColor] = useState(null)
   const [displayedExtracted, setDisplayedExtracted] = useState([])
 
   // Keep displayedExtracted in sync when a new image is extracted
   useEffect(() => {
     setDisplayedExtracted(extractedColors)
   }, [extractedColors])
-
-  const handleColorSelect = (hex) => {
-    setSuggestionBase(hex)
-    setPendingColor(hex)
-  }
-
-  const assignToDataColor = (index) => {
-    dispatch({ type: 'SET_DATA_COLOR', payload: { index, value: pendingColor } })
-    setPendingColor(null)
-  }
-
-  const assignToRole = (role) => {
-    dispatch({ type: 'SET_ROLE_COLOR', payload: { role, value: pendingColor } })
-    setPendingColor(null)
-  }
 
   const applyExtractedAsDataColors = () => {
     if (displayedExtracted.length === 0) return
@@ -170,14 +152,14 @@ export default function App() {
 
       {/* ── Controls panel (top ~50%) ────────────────────────────────── */}
       <div
-        className={`flex-shrink-0 border-b ${activeTab === 'extract' ? 'overflow-hidden' : 'overflow-y-auto'}`}
+        className={`flex-shrink-0 border-b ${['extract','harmony'].includes(activeTab) ? 'overflow-hidden' : 'overflow-y-auto'}`}
         style={{
           height: controlsHeight,
           borderColor: 'var(--border)',
           background: 'var(--bg)',
         }}
       >
-        <div className={activeTab === 'extract' ? 'p-5 h-full box-border flex flex-col' : 'p-5'}>
+        <div className={['extract','harmony'].includes(activeTab) ? 'p-5 h-full box-border flex flex-col' : 'p-5'}>
           {activeTab === 'extract' && (
             <div className="flex-1 flex gap-4 min-h-0">
 
@@ -226,7 +208,6 @@ export default function App() {
                     <ExtractedColorGrid
                       colors={displayedExtracted}
                       onReorder={setDisplayedExtracted}
-                      onColorSelect={handleColorSelect}
                     />
                   </div>
                 </div>
@@ -240,25 +221,9 @@ export default function App() {
           )}
 
           {activeTab === 'harmony' && (
-            <div className="space-y-5">
-              <HarmonyGenerator
-                onApply={colors => dispatch({ type: 'SET_ALL_DATA_COLORS', payload: colors })}
-              />
-
-              {pendingColor && (
-                <ColorAssignPanel
-                  color={pendingColor}
-                  onAssignData={assignToDataColor}
-                  onAssignRole={assignToRole}
-                  onDismiss={() => setPendingColor(null)}
-                />
-              )}
-
-              <ComplementarySuggestions
-                baseColor={suggestionBase}
-                onColorSelect={handleColorSelect}
-              />
-            </div>
+            <HarmonyGenerator
+              onApply={colors => dispatch({ type: 'SET_ALL_DATA_COLORS', payload: colors })}
+            />
           )}
 
           {activeTab === 'colors' && (
@@ -324,60 +289,6 @@ export default function App() {
         <ThemePreview state={state} previewBg={previewBg} onPreviewBgChange={setPreviewBg} />
       </div>
 
-    </div>
-  )
-}
-
-function ColorAssignPanel({ color, onAssignData, onAssignRole, onDismiss }) {
-  const roles = ['background', 'foreground', 'tableAccent', 'maximum', 'center', 'minimum', 'null']
-
-  return (
-    <div className="rounded-xl border p-4 space-y-3"
-      style={{ background: 'var(--surface)', borderColor: 'var(--accent)', boxShadow: 'var(--shadow-md)' }}>
-
-      <div className="flex items-center gap-3">
-        <div className="w-7 h-7 rounded-lg flex-shrink-0 border"
-          style={{ background: color, borderColor: 'var(--border)' }} />
-        <div className="flex-1">
-          <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-            Assign {color.toUpperCase()}
-          </p>
-          <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>Choose where to use this color</p>
-        </div>
-        <button onClick={onDismiss} className="text-xs hover:opacity-70" style={{ color: 'var(--text-secondary)' }}>✕</button>
-      </div>
-
-      <div className="space-y-1.5">
-        <p className="text-xs font-medium uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>Series slot</p>
-        <div className="flex gap-1.5 flex-wrap">
-          {[0,1,2,3,4,5,6,7].map(i => (
-            <button
-              key={i}
-              onClick={() => onAssignData(i)}
-              className="w-7 h-7 rounded-lg text-xs font-semibold hover:opacity-80 transition-colors"
-              style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
-            >
-              {i + 1}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="space-y-1.5">
-        <p className="text-xs font-medium uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>Role</p>
-        <div className="flex gap-1.5 flex-wrap">
-          {roles.map(role => (
-            <button
-              key={role}
-              onClick={() => onAssignRole(role)}
-              className="px-2 py-1 rounded-md text-xs font-medium hover:opacity-80 transition-colors capitalize"
-              style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
-            >
-              {role}
-            </button>
-          ))}
-        </div>
-      </div>
     </div>
   )
 }

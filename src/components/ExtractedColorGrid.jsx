@@ -9,7 +9,7 @@ import { GripVertical, Copy, Check } from 'lucide-react'
  *   onReorder     — callback(newColors) after drag-drop reorder
  *   onColorSelect — callback(hex) when the + button is clicked
  */
-export default function ExtractedColorGrid({ colors, onReorder, onColorSelect }) {
+export default function ExtractedColorGrid({ colors, onReorder }) {
   const [dragFromIdx, setDragFromIdx] = useState(null)
   const [dragOverIdx, setDragOverIdx] = useState(null)
   const [copiedHex, setCopiedHex] = useState(null)
@@ -77,15 +77,6 @@ export default function ExtractedColorGrid({ colors, onReorder, onColorSelect })
                 <GripVertical size={12} style={{ color: 'rgba(255,255,255,0.6)', filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.4))' }} />
               </div>
 
-              {/* Add button */}
-              <button
-                onClick={e => { e.stopPropagation(); onColorSelect(hex) }}
-                title="Add to palette"
-                className="self-end text-[10px] font-bold leading-none px-1.5 py-0.5 rounded-md transition-colors hover:opacity-80"
-                style={{ background: 'rgba(255,255,255,0.25)', color: 'white' }}
-              >
-                +
-              </button>
             </div>
 
             {/* Proportion bar + hex label + copy */}
