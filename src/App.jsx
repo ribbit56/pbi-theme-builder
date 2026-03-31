@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { Palette, RotateCcw, ImageIcon, Sliders, Type, Download, Shuffle, Wand2 } from 'lucide-react'
 
 import { useTheme } from './hooks/useTheme.js'
@@ -39,40 +39,11 @@ export default function App() {
   const [suggestionBase, setSuggestionBase] = useState(state.dataColors[0])
   const [pendingColor, setPendingColor] = useState(null)
   const [displayedExtracted, setDisplayedExtracted] = useState([])
-  const [excludedColors, setExcludedColors] = useState(new Set())
 
   // Keep displayedExtracted in sync when a new image is extracted
   useEffect(() => {
     setDisplayedExtracted(extractedColors)
-    setExcludedColors(new Set())
   }, [extractedColors])
-
-  const toggleExcludeColor = (hex) => {
-    setExcludedColors(prev => {
-      const next = new Set(prev)
-      next.has(hex) ? next.delete(hex) : next.add(hex)
-      return next
-    })
-  }
-
-  const activeExtracted = displayedExtracted.filter(({ hex }) => !excludedColors.has(hex))
-
-  // resolvedState is what the preview, JSON panel, and export always see.
-  // Computed inline (no memoization) so it is always fresh on every render.
-  // When extracted colours are loaded, dataColors is derived from active
-  // (non-excluded) swatches so exclusions are reflected immediately.
-  const activeHexes = activeExtracted.map(c => c.hex)
-  const resolvedState = activeHexes.length > 0
-    ? {
-        ...state,
-        dataColors: Array.from({ length: 8 }, (_, i) => activeHexes[i % activeHexes.length]),
-      }
-    : state
-
-  // Ref always holds the latest resolvedState — read by ExportButton at click time
-  // so it never captures a stale closure value regardless of render timing.
-  const resolvedStateRef = useRef(resolvedState)
-  resolvedStateRef.current = resolvedState
 
   const handleColorSelect = (hex) => {
     setSuggestionBase(hex)
@@ -90,8 +61,8 @@ export default function App() {
   }
 
   const applyExtractedAsDataColors = () => {
-    if (activeExtracted.length === 0) return
-    const hexes = activeExtracted.map(c => c.hex)
+    if (displayedExtracted.length === 0) return
+    const hexes = displayedExtracted.map(c => c.hex)
     const filled = Array.from({ length: 8 }, (_, i) => hexes[i % hexes.length])
     dispatch({ type: 'SET_ALL_DATA_COLORS', payload: filled })
   }
@@ -107,8 +78,8 @@ export default function App() {
   }
 
   const applyFullThemeFromImage = () => {
-    if (activeExtracted.length === 0) return
-    const patch = buildThemeFromColors(activeExtracted.map(c => c.hex))
+    if (displayedExtracted.length === 0) return
+    const patch = buildThemeFromColors(displayedExtracted.map(c => c.hex))
     dispatch({ type: 'APPLY_IMAGE_THEME', payload: patch })
   }
 
@@ -164,7 +135,7 @@ export default function App() {
             <RotateCcw size={13} />
           </button>
           <ThemeToggle mode={mode} onToggle={toggleMode} />
-          <ExportButton getState={() => resolvedStateRef.current} />
+          <ExportButton state={state} />
         </div>
       </header>
 
@@ -257,8 +228,6 @@ export default function App() {
                       colors={displayedExtracted}
                       onReorder={setDisplayedExtracted}
                       onColorSelect={handleColorSelect}
-                      excluded={excludedColors}
-                      onToggleExclude={toggleExcludeColor}
                     />
                   </div>
                 ) : (
@@ -346,7 +315,7 @@ export default function App() {
 
           {activeTab === 'export' && (
             <div className="space-y-4">
-              <JsonPanel state={resolvedState} />
+              <JsonPanel state={state} />
             </div>
           )}
         </div>
@@ -354,7 +323,7 @@ export default function App() {
 
       {/* ── Preview panel (bottom ~60%) ──────────────────────────────── */}
       <div className="flex-1 overflow-hidden flex flex-col min-h-0 p-4" style={{ background: 'var(--bg)' }}>
-        <ThemePreview state={resolvedState} previewBg={previewBg} onPreviewBgChange={setPreviewBg} />
+        <ThemePreview state={state} previewBg={previewBg} onPreviewBgChange={setPreviewBg} />
       </div>
 
     </div>

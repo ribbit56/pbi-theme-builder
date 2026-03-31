@@ -7,7 +7,7 @@ import { buildTheme } from '../utils/themeBuilder.js'
  * Catches validation errors from buildTheme and shows them inline.
  * Never downloads a file when validation fails.
  */
-export default function ExportButton({ getState }) {
+export default function ExportButton({ state }) {
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(false)
 
@@ -16,7 +16,6 @@ export default function ExportButton({ getState }) {
     setSuccess(false)
 
     try {
-      const state = getState()
       const themeObject = buildTheme(state)
       const json = JSON.stringify(themeObject, null, 2)
       const blob = new Blob([json], { type: 'application/json' })
