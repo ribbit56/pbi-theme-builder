@@ -44,33 +44,56 @@ export default function PaletteSection({ state, dispatch }) {
           </button>
         }
       >
-        <div className="flex gap-3 flex-wrap">
+        <div className="grid grid-cols-8 gap-2">
           {state.dataColors.map((color, i) => {
             const key = `data-${i}`
+            const isLight = (() => {
+              const r = parseInt(color.slice(1,3),16)/255
+              const g = parseInt(color.slice(3,5),16)/255
+              const b = parseInt(color.slice(5,7),16)/255
+              return 0.2126*r + 0.7152*g + 0.0722*b > 0.55
+            })()
             return (
-              <div key={key} className="space-y-2">
-                <ColorSwatch
-                  color={color}
-                  label={`${i + 1}`}
-                  size="sm"
-                  onEdit={() => toggle(key)}
-                />
-                {activeKey === key && (
-                  <div className="w-56 p-3 rounded-xl border shadow-lg"
-                    style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-                    <ColorPicker
-                      value={color}
-                      onChange={(hex) =>
-                        dispatch({ type: 'SET_DATA_COLOR', payload: { index: i, value: hex } })
-                      }
-                      label={`Series ${i + 1}`}
-                    />
-                  </div>
-                )}
+              <div key={key} className="flex flex-col gap-1">
+                <button
+                  onClick={() => toggle(key)}
+                  title={`Edit series ${i + 1}`}
+                  className="w-full h-20 rounded-xl border relative transition-transform hover:scale-[1.03]"
+                  style={{
+                    background: color,
+                    borderColor: activeKey === key ? 'var(--accent)' : 'rgba(0,0,0,0.08)',
+                    boxShadow: activeKey === key ? '0 0 0 2px var(--accent)' : '0 1px 3px rgba(0,0,0,0.08)',
+                  }}
+                >
+                  <span
+                    className="absolute top-1.5 left-0 right-0 text-center text-[11px] font-bold"
+                    style={{ color: isLight ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.6)' }}
+                  >
+                    {i + 1}
+                  </span>
+                </button>
+                <div className="text-[10px] font-mono leading-none truncate text-center" style={{ color: 'var(--text-secondary)' }}>
+                  {color.toUpperCase()}
+                </div>
               </div>
             )
           })}
         </div>
+
+        {/* Color picker — shown below the row when a swatch is active */}
+        {activeKey?.startsWith('data-') && (() => {
+          const i = parseInt(activeKey.split('-')[1])
+          return (
+            <div className="mt-2 p-3 rounded-xl border shadow-lg"
+              style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
+              <ColorPicker
+                value={state.dataColors[i]}
+                onChange={hex => dispatch({ type: 'SET_DATA_COLOR', payload: { index: i, value: hex } })}
+                label={`Series ${i + 1}`}
+              />
+            </div>
+          )
+        })()}
       </Section>
 
       {/* ── Background & Text ─────────────────────── */}
