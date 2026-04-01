@@ -80,9 +80,9 @@ export const COLOR_ROLE_GROUPS = [
     label: 'Diverging Scale',
     description: 'Min → Center → Max color scale',
     roles: [
-      { key: 'maximum', label: 'Maximum' },
-      { key: 'center',  label: 'Center' },
       { key: 'minimum', label: 'Minimum' },
+      { key: 'center',  label: 'Center' },
+      { key: 'maximum', label: 'Maximum' },
     ],
   },
 ]
