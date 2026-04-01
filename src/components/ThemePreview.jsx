@@ -146,10 +146,10 @@ const ThemePreview = memo(function ThemePreview({ state, previewBg = '#ffffff', 
         aria-label="Theme preview dashboard"
       >
         {/* ── Card backgrounds ─────────────────────────────────────── */}
-        <CardBg x={bcLeft - 4} y={bcTop - 24} w={bcW + 8} h={bcH + 32} />
-        <CardBg x={lcLeft - 4} y={lcTop - 24} w={lcW + 8} h={lcH + 32} />
-        <CardBg x={kpiLeft - 4} y={kpiTop - 4} w={kpiW + 8} h={kpiH + 8} />
-        <CardBg x={tLeft - 4} y={tTop - 4} w={tW + 8} h={tH + 8} />
+        <CardBg x={bcLeft - 4} y={bcTop - 24} w={bcW + 8} h={bcH + 32} fill={background} />
+        <CardBg x={lcLeft - 4} y={lcTop - 24} w={lcW + 8} h={lcH + 32} fill={background} />
+        <CardBg x={kpiLeft - 4} y={kpiTop - 4} w={kpiW + 8} h={kpiH + 8} fill={background} />
+        <CardBg x={tLeft - 4} y={tTop - 4} w={tW + 8} h={tH + 8} fill={background} />
 
         {/* ── Card titles ──────────────────────────────────────────── */}
         <text x={bcLeft + 2} y={bcTop - 8} fontFamily={title.fontFace} fontSize={11}
@@ -277,11 +277,11 @@ const ThemePreview = memo(function ThemePreview({ state, previewBg = '#ffffff', 
   )
 })
 
-function CardBg({ x, y, w, h }) {
+function CardBg({ x, y, w, h, fill }) {
   return (
     <rect x={x} y={y} width={w} height={h} rx={8}
-      fill="white" fillOpacity={0.6}
-      style={{ filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.06))' }}
+      fill={fill} fillOpacity={0.9}
+      style={{ filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.08))' }}
     />
   )
 }
