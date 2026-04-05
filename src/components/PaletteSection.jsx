@@ -83,22 +83,19 @@ export default function PaletteSection({ state, dispatch }) {
             })()
             const isDragTarget = dragOverIdx === i && dragFromIdx !== i
             return (
-              <div
-                key={key}
-                className="flex flex-col gap-1 select-none"
-                draggable
-                onDragStart={e => handleDragStart(e, i)}
-                onDragEnter={() => handleDragEnter(i)}
-                onDragOver={e => e.preventDefault()}
-                onDragEnd={handleDragEnd}
-                style={{ cursor: 'grab' }}
-              >
-                <button
+              <div key={key} className="flex flex-col gap-1 select-none">
+                <div
+                  draggable
                   onClick={() => toggle(key)}
+                  onDragStart={e => handleDragStart(e, i)}
+                  onDragEnter={() => handleDragEnter(i)}
+                  onDragOver={e => e.preventDefault()}
+                  onDragEnd={handleDragEnd}
                   title={`Edit series ${i + 1} — drag to reorder`}
                   className="w-full h-20 rounded-xl border relative"
                   style={{
                     background: color,
+                    cursor: 'grab',
                     borderColor: isDragTarget ? 'var(--accent)' : activeKey === key ? 'var(--accent)' : 'rgba(0,0,0,0.08)',
                     boxShadow: isDragTarget ? '0 0 0 2px var(--accent)' : activeKey === key ? '0 0 0 2px var(--accent)' : '0 1px 3px rgba(0,0,0,0.08)',
                     outline: isDragTarget ? '2px dashed var(--accent)' : 'none',
@@ -111,7 +108,7 @@ export default function PaletteSection({ state, dispatch }) {
                   >
                     {i + 1}
                   </span>
-                </button>
+                </div>
                 <div className="text-[10px] font-mono leading-none truncate text-center" style={{ color: 'var(--text-secondary)' }}>
                   {color.toUpperCase()}
                 </div>
