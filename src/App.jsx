@@ -209,8 +209,8 @@ export default function App() {
                 <div className="flex-1 flex flex-col min-h-0">
                   <div className="flex-shrink-0 mb-3">
                     <button onClick={() => setGenerateMode(null)}
-                      className="text-xs px-2 py-1 rounded-md transition-colors hover:opacity-70"
-                      style={{ color: 'var(--text-secondary)', background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
+                      className="text-xs px-3 py-1.5 rounded-md font-medium transition-colors hover:opacity-80"
+                      style={{ color: 'var(--accent)', background: 'var(--accent-subtle)', border: '1px solid var(--accent)' }}>
                       ← Back
                     </button>
                   </div>
@@ -263,8 +263,8 @@ export default function App() {
                 <div className="flex-1 flex flex-col min-h-0">
                   <div className="flex-shrink-0 mb-3">
                     <button onClick={() => setGenerateMode(null)}
-                      className="text-xs px-2 py-1 rounded-md transition-colors hover:opacity-70"
-                      style={{ color: 'var(--text-secondary)', background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
+                      className="text-xs px-3 py-1.5 rounded-md font-medium transition-colors hover:opacity-80"
+                      style={{ color: 'var(--accent)', background: 'var(--accent-subtle)', border: '1px solid var(--accent)' }}>
                       ← Back
                     </button>
                   </div>
