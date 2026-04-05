@@ -21,18 +21,18 @@ const HEADER_HEIGHT = 56
 const TAB_HEIGHT = 44
 
 const TABS = [
-  { id: 'extract',  label: 'Extract',  Icon: ImageIcon },
-  { id: 'harmony',  label: 'Harmony',  Icon: Wand2     },
-  { id: 'colors',   label: 'Colors',   Icon: Sliders   },
-  { id: 'fonts',    label: 'Fonts',    Icon: Type      },
-  { id: 'export',   label: 'Export',   Icon: Download  },
+  { id: 'generate', label: 'Generate', Icon: Palette  },
+  { id: 'colors',   label: 'Colors',   Icon: Sliders  },
+  { id: 'fonts',    label: 'Fonts',    Icon: Type     },
+  { id: 'export',   label: 'Export',   Icon: Download },
 ]
 
 export default function App() {
   const { state, dispatch, mode, toggleMode } = useTheme()
   const { extractedColors, isExtracting, error: extractError, extractFromFile } = useColorExtraction()
 
-  const [activeTab, setActiveTab]       = useState('extract')
+  const [activeTab, setActiveTab]       = useState('generate')
+  const [generateMode, setGenerateMode] = useState(null) // null | 'extract' | 'harmony'
   const [previewBg, setPreviewBg]       = useState('#ffffff')
   const [globalFont, setGlobalFont]     = useState('Segoe UI')
   const [displayedExtracted, setDisplayedExtracted] = useState([])
@@ -152,78 +152,138 @@ export default function App() {
 
       {/* ── Controls panel (top ~50%) ────────────────────────────────── */}
       <div
-        className={`flex-shrink-0 border-b ${['extract','harmony'].includes(activeTab) ? 'overflow-hidden' : 'overflow-y-auto'}`}
+        className={`flex-shrink-0 border-b ${activeTab === 'generate' ? 'overflow-hidden' : 'overflow-y-auto'}`}
         style={{
           height: controlsHeight,
           borderColor: 'var(--border)',
           background: 'var(--bg)',
         }}
       >
-        <div className={['extract','harmony'].includes(activeTab) ? 'p-5 h-full box-border flex flex-col' : 'p-5'}>
-          {activeTab === 'extract' && (
-            <div className="flex-1 flex gap-4 min-h-0">
+        <div className={activeTab === 'generate' ? 'p-5 h-full box-border flex flex-col' : 'p-5'}>
+          {activeTab === 'generate' && (
+            <div className="flex-1 flex flex-col min-h-0">
 
-              {/* Upload zone */}
-              <div className="w-96 flex-shrink-0 flex flex-col min-h-0">
-                <ImageUploader onExtract={extractFromFile} isExtracting={isExtracting} />
-                {extractError && (
-                  <p className="text-xs mt-1" style={{ color: '#ef4444' }}>{extractError}</p>
-                )}
-              </div>
+              {/* ── Mode picker ── */}
+              {generateMode === null && (
+                <div className="flex-1 flex gap-4 min-h-0">
+                  {[
+                    {
+                      id: 'extract',
+                      Icon: ImageIcon,
+                      label: 'Extract from Image',
+                      description: 'Upload any image and automatically pull its dominant colors into your theme palette.',
+                    },
+                    {
+                      id: 'harmony',
+                      Icon: Wand2,
+                      label: 'Harmony Generator',
+                      description: 'Pick a seed color and generate a harmonious 8-color palette using color theory rules.',
+                    },
+                  ].map(({ id, Icon, label, description }) => (
+                    <button
+                      key={id}
+                      onClick={() => setGenerateMode(id)}
+                      className="flex-1 flex flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed transition-all hover:opacity-90 active:scale-[0.99] text-left px-10"
+                      style={{
+                        borderColor: 'var(--border)',
+                        background: 'var(--surface-2)',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent)'}
+                      onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+                    >
+                      <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                        style={{ background: 'var(--accent-subtle)' }}>
+                        <Icon size={22} style={{ color: 'var(--accent)' }} />
+                      </div>
+                      <div className="text-center">
+                        <p className="text-sm font-semibold mb-1" style={{ color: 'var(--text)' }}>{label}</p>
+                        <p className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{description}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
 
-              {/* Extracted colors grid */}
-              {displayedExtracted.length > 0 ? (
-                <div className="flex-1 flex flex-col gap-2 min-h-0">
-                  <div className="flex items-center justify-between gap-2 flex-shrink-0">
-                    <h3 className="text-xs font-semibold uppercase tracking-widest"
-                      style={{ color: 'var(--text-secondary)' }}>
-                      Extracted Colors
-                    </h3>
-                    <div className="flex gap-1.5">
-                      <button
-                        title="Shuffle extracted colors"
-                        onClick={shuffleExtracted}
-                        className="p-1 rounded-md transition-colors hover:opacity-70"
-                        style={{ color: 'var(--text-secondary)', background: 'var(--surface-2)', border: '1px solid var(--border)' }}
-                      >
-                        <Shuffle size={12} />
-                      </button>
-                      <button
-                        onClick={applyExtractedAsDataColors}
-                        className="text-xs px-2 py-1 rounded-md font-medium transition-colors hover:opacity-80"
-                        style={{ background: 'var(--accent-subtle)', color: 'var(--accent)' }}
-                      >
-                        Series only
-                      </button>
-                      <button
-                        onClick={applyFullThemeFromImage}
-                        className="text-xs px-2 py-1 rounded-md font-medium transition-colors hover:opacity-80"
-                        style={{ background: 'var(--accent)', color: '#fff' }}
-                      >
-                        Apply full theme
-                      </button>
+              {/* ── Extract mode ── */}
+              {generateMode === 'extract' && (
+                <div className="flex-1 flex gap-4 min-h-0">
+                  <div className="w-96 flex-shrink-0 flex flex-col min-h-0">
+                    <ImageUploader onExtract={extractFromFile} isExtracting={isExtracting} />
+                    {extractError && (
+                      <p className="text-xs mt-1" style={{ color: '#ef4444' }}>{extractError}</p>
+                    )}
+                  </div>
+                  {displayedExtracted.length > 0 ? (
+                    <div className="flex-1 flex flex-col gap-2 min-h-0">
+                      <div className="flex items-center justify-between gap-2 flex-shrink-0">
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => setGenerateMode(null)}
+                            className="text-xs px-2 py-1 rounded-md transition-colors hover:opacity-70"
+                            style={{ color: 'var(--text-secondary)', background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
+                            ← Back
+                          </button>
+                          <h3 className="text-xs font-semibold uppercase tracking-widest"
+                            style={{ color: 'var(--text-secondary)' }}>Extracted Colors</h3>
+                        </div>
+                        <div className="flex gap-1.5">
+                          <button title="Shuffle" onClick={shuffleExtracted}
+                            className="p-1 rounded-md transition-colors hover:opacity-70"
+                            style={{ color: 'var(--text-secondary)', background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
+                            <Shuffle size={12} />
+                          </button>
+                          <button onClick={applyExtractedAsDataColors}
+                            className="text-xs px-2 py-1 rounded-md font-medium transition-colors hover:opacity-80"
+                            style={{ background: 'var(--accent-subtle)', color: 'var(--accent)' }}>
+                            Series only
+                          </button>
+                          <button onClick={applyFullThemeFromImage}
+                            className="text-xs px-2 py-1 rounded-md font-medium transition-colors hover:opacity-80"
+                            style={{ background: 'var(--accent)', color: '#fff' }}>
+                            Apply full theme
+                          </button>
+                        </div>
+                      </div>
+                      <div className="flex-1 min-h-0">
+                        <ExtractedColorGrid colors={displayedExtracted} onReorder={setDisplayedExtracted} />
+                      </div>
                     </div>
+                  ) : (
+                    <div className="flex-1 flex flex-col gap-2 min-h-0">
+                      <div className="flex-shrink-0">
+                        <button onClick={() => setGenerateMode(null)}
+                          className="text-xs px-2 py-1 rounded-md transition-colors hover:opacity-70"
+                          style={{ color: 'var(--text-secondary)', background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
+                          ← Back
+                        </button>
+                      </div>
+                      <div className="flex-1 flex items-center justify-center rounded-xl border-2 border-dashed"
+                        style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
+                        <p className="text-xs text-center px-4">Upload an image to extract colors</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ── Harmony mode ── */}
+              {generateMode === 'harmony' && (
+                <div className="flex-1 flex flex-col min-h-0">
+                  <div className="flex-shrink-0 mb-3">
+                    <button onClick={() => setGenerateMode(null)}
+                      className="text-xs px-2 py-1 rounded-md transition-colors hover:opacity-70"
+                      style={{ color: 'var(--text-secondary)', background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
+                      ← Back
+                    </button>
                   </div>
                   <div className="flex-1 min-h-0">
-                    <ExtractedColorGrid
-                      colors={displayedExtracted}
-                      onReorder={setDisplayedExtracted}
+                    <HarmonyGenerator
+                      onApply={colors => dispatch({ type: 'SET_ALL_DATA_COLORS', payload: colors })}
                     />
                   </div>
                 </div>
-              ) : (
-                <div className="flex-1 flex items-center justify-center rounded-xl border-2 border-dashed"
-                  style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
-                  <p className="text-xs text-center px-4">Upload an image to extract colors</p>
-                </div>
               )}
-            </div>
-          )}
 
-          {activeTab === 'harmony' && (
-            <HarmonyGenerator
-              onApply={colors => dispatch({ type: 'SET_ALL_DATA_COLORS', payload: colors })}
-            />
+            </div>
           )}
 
           {activeTab === 'colors' && (
