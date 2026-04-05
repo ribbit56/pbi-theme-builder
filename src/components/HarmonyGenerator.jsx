@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { Wand2, Copy, Check } from 'lucide-react'
 import { generateHarmony } from '../utils/colorHelpers'
 
@@ -14,15 +14,45 @@ export default function HarmonyGenerator({ onApply }) {
   const [seed, setSeed] = useState('#118DFF')
   const [type, setType] = useState('analogous')
   const [copiedHex, setCopiedHex] = useState(null)
+  const [displayedColors, setDisplayedColors] = useState([])
+  const [dragFromIdx, setDragFromIdx] = useState(null)
+  const [dragOverIdx, setDragOverIdx] = useState(null)
   const inputRef = useRef(null)
+  const dragNode = useRef(null)
 
-  const colors = useMemo(() => generateHarmony(seed, type), [seed, type])
+  const generated = useMemo(() => generateHarmony(seed, type), [seed, type])
+
+  // Reset order whenever seed/type generates new colors
+  useEffect(() => { setDisplayedColors(generated) }, [generated])
 
   const copyHex = (hex, e) => {
     e.stopPropagation()
     navigator.clipboard.writeText(hex.toUpperCase())
     setCopiedHex(hex)
     setTimeout(() => setCopiedHex(h => h === hex ? null : h), 1500)
+  }
+
+  const handleDragStart = (e, i) => {
+    setDragFromIdx(i)
+    dragNode.current = e.currentTarget
+    setTimeout(() => { if (dragNode.current) dragNode.current.style.opacity = '0.4' }, 0)
+  }
+
+  const handleDragEnter = (i) => {
+    if (i !== dragFromIdx) setDragOverIdx(i)
+  }
+
+  const handleDragEnd = () => {
+    if (dragNode.current) dragNode.current.style.opacity = ''
+    dragNode.current = null
+    if (dragFromIdx !== null && dragOverIdx !== null && dragFromIdx !== dragOverIdx) {
+      const reordered = [...displayedColors]
+      const [moved] = reordered.splice(dragFromIdx, 1)
+      reordered.splice(dragOverIdx, 0, moved)
+      setDisplayedColors(reordered)
+    }
+    setDragFromIdx(null)
+    setDragOverIdx(null)
   }
 
   return (
@@ -73,7 +103,7 @@ export default function HarmonyGenerator({ onApply }) {
 
         {/* Apply button */}
         <button
-          onClick={() => onApply(colors)}
+          onClick={() => onApply(displayedColors)}
           className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors hover:opacity-80 w-fit flex-shrink-0"
           style={{ background: 'var(--accent)', color: '#fff' }}
         >
@@ -82,42 +112,49 @@ export default function HarmonyGenerator({ onApply }) {
         </button>
       </div>
 
-      {/* Right: 4×2 color swatch grid */}
+      {/* Right: 4×2 draggable color swatch grid */}
       <div className="flex-1 min-h-0 flex flex-col gap-2">
         <h3 className="text-xs font-semibold uppercase tracking-widest flex-shrink-0" style={{ color: 'var(--text-secondary)' }}>
           Generated Colors
         </h3>
         <div className="grid grid-cols-4 grid-rows-2 gap-2 flex-1 min-h-0">
-          {colors.map((hex, i) => (
-            <div
-              key={i}
-              className="flex flex-col rounded-xl overflow-hidden border"
-              style={{
-                borderColor: 'rgba(0,0,0,0.08)',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-              }}
-            >
-              {/* Color block */}
+          {displayedColors.map((hex, i) => {
+            const isDragTarget = dragOverIdx === i && dragFromIdx !== i
+            return (
               <div
-                className="flex-1 min-h-0"
-                style={{ background: hex }}
-              />
-              {/* Hex label + copy */}
-              <div className="flex items-center justify-between px-1.5 pt-1 pb-1.5 flex-shrink-0" style={{ background: 'var(--surface-2)' }}>
-                <span className="text-[11px] font-mono font-medium leading-none truncate" style={{ color: 'var(--text)' }}>
-                  {hex.toUpperCase()}
-                </span>
-                <button
-                  onClick={e => copyHex(hex, e)}
-                  title="Copy hex"
-                  className="flex-shrink-0 rounded transition-colors hover:opacity-70"
-                  style={{ color: copiedHex === hex ? '#16a34a' : 'var(--text-secondary)' }}
-                >
-                  {copiedHex === hex ? <Check size={11} /> : <Copy size={11} />}
-                </button>
+                key={i}
+                draggable
+                onDragStart={e => handleDragStart(e, i)}
+                onDragEnter={() => handleDragEnter(i)}
+                onDragOver={e => e.preventDefault()}
+                onDragEnd={handleDragEnd}
+                className="flex flex-col rounded-xl overflow-hidden border select-none"
+                style={{
+                  borderColor: isDragTarget ? 'var(--accent)' : 'rgba(0,0,0,0.08)',
+                  boxShadow: isDragTarget ? '0 0 0 2px var(--accent)' : '0 1px 3px rgba(0,0,0,0.08)',
+                  cursor: 'grab',
+                }}
+              >
+                {/* Color block — full drag surface */}
+                <div className="flex-1 min-h-0" style={{ background: hex }} />
+
+                {/* Hex label + copy */}
+                <div className="flex items-center justify-between px-1.5 pt-1 pb-1.5 flex-shrink-0" style={{ background: 'var(--surface-2)' }}>
+                  <span className="text-[11px] font-mono font-medium leading-none truncate" style={{ color: 'var(--text)' }}>
+                    {hex.toUpperCase()}
+                  </span>
+                  <button
+                    onClick={e => copyHex(hex, e)}
+                    title="Copy hex"
+                    className="flex-shrink-0 rounded transition-colors hover:opacity-70"
+                    style={{ color: copiedHex === hex ? '#16a34a' : 'var(--text-secondary)' }}
+                  >
+                    {copiedHex === hex ? <Check size={11} /> : <Copy size={11} />}
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
 
