@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
-import { Wand2, Copy, Check } from 'lucide-react'
+import { Wand2, Copy, Check, BookOpen } from 'lucide-react'
 import { generateHarmony } from '../utils/colorHelpers'
+import ColorTheoryModal from './ColorTheoryModal'
 
 const HARMONY_TYPES = [
   { value: 'analogous',            label: 'Analogous' },
@@ -17,6 +18,7 @@ export default function HarmonyGenerator({ onApply }) {
   const [displayedColors, setDisplayedColors] = useState([])
   const [dragFromIdx, setDragFromIdx] = useState(null)
   const [dragOverIdx, setDragOverIdx] = useState(null)
+  const [showTheory, setShowTheory] = useState(false)
   const inputRef = useRef(null)
   const dragNode = useRef(null)
 
@@ -101,16 +103,28 @@ export default function HarmonyGenerator({ onApply }) {
           ))}
         </div>
 
-        {/* Apply button */}
-        <button
-          onClick={() => onApply(displayedColors)}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors hover:opacity-80 w-fit flex-shrink-0"
-          style={{ background: 'var(--accent)', color: '#fff' }}
-        >
-          <Wand2 size={12} />
-          Apply to series colors
-        </button>
+        {/* Apply + theory buttons */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <button
+            onClick={() => onApply(displayedColors)}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors hover:opacity-80"
+            style={{ background: 'var(--accent)', color: '#fff' }}
+          >
+            <Wand2 size={12} />
+            Apply to series colors
+          </button>
+          <button
+            onClick={() => setShowTheory(true)}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors hover:opacity-80"
+            style={{ color: 'var(--accent)', background: 'var(--accent-subtle)', border: '1px solid var(--accent)' }}
+          >
+            <BookOpen size={12} />
+            Color Theory Guide
+          </button>
+        </div>
       </div>
+
+      {showTheory && <ColorTheoryModal onClose={() => setShowTheory(false)} />}
 
       {/* Right: 4×2 draggable color swatch grid */}
       <div className="flex-1 min-h-0 flex flex-col gap-2">
