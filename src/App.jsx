@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Palette, RotateCcw, ImageIcon, Sliders, Type, Download, Shuffle, Wand2 } from 'lucide-react'
+import { Palette, RotateCcw, ImageIcon, Sliders, Type, Download, Shuffle, Wand2, HelpCircle } from 'lucide-react'
 
 import { useTheme } from './hooks/useTheme.js'
 import { useColorExtraction } from './hooks/useColorExtraction.js'
@@ -16,6 +16,7 @@ import ColorSwatch from './components/ColorSwatch.jsx'
 import ExtractedColorGrid from './components/ExtractedColorGrid.jsx'
 import HarmonyGenerator from './components/HarmonyGenerator.jsx'
 import JsonPanel from './components/JsonPanel.jsx'
+import HelpModal from './components/HelpModal.jsx'
 
 const HEADER_HEIGHT = 56
 const TAB_HEIGHT = 44
@@ -33,6 +34,7 @@ export default function App() {
 
   const [activeTab, setActiveTab]       = useState('generate')
   const [generateMode, setGenerateMode] = useState(null) // null | 'extract' | 'harmony'
+  const [showHelp, setShowHelp]         = useState(false)
   const [previewBg, setPreviewBg]       = useState('#ffffff')
   const [globalFont, setGlobalFont]     = useState('Segoe UI')
   const [displayedExtracted, setDisplayedExtracted] = useState([])
@@ -115,6 +117,14 @@ export default function App() {
             style={{ color: 'var(--text-secondary)', background: 'var(--surface-2)', border: '1px solid var(--border)' }}
           >
             <RotateCcw size={13} />
+          </button>
+          <button
+            onClick={() => setShowHelp(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors hover:opacity-80"
+            style={{ color: 'var(--text-secondary)', background: 'var(--surface-2)', border: '1px solid var(--border)' }}
+          >
+            <HelpCircle size={13} />
+            Need Help?
           </button>
           <ThemeToggle mode={mode} onToggle={toggleMode} />
           <ExportButton state={state} />
@@ -342,6 +352,7 @@ export default function App() {
         <ThemePreview state={state} previewBg={previewBg} onPreviewBgChange={setPreviewBg} />
       </div>
 
+      {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
     </div>
   )
 }
