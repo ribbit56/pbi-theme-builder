@@ -115,10 +115,10 @@ const HARMONIES = [
   },
   {
     name: 'Split-Complementary',
-    tagline: 'A safer take on complementary contrast',
+    tagline: 'Bold contrast without the clash',
     description:
-      'Instead of using the direct opposite (complement) of your seed color, split-complementary takes the two hues on either side of that complement. You get strong contrast with less visual tension.',
-    when: 'Use when you want contrast but complementary feels too harsh. A good balance between bold and approachable.',
+      'Start with your seed color, then look directly across the wheel — but instead of grabbing that single opposite hue, take the two colors flanking it. You get striking contrast while keeping the palette feeling balanced and easy to work with.',
+    when: 'Use when you want visual punch without two colors fighting for dominance. A forgiving scheme that works well for both charts and branded reports.',
     markers: [
       { angle: 210, color: '#2563eb' },
       { angle:  15, color: '#ea580c' },
