@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Shuffle } from 'lucide-react'
 import ColorSwatch from './ColorSwatch.jsx'
 import ColorPicker from './ColorPicker.jsx'
@@ -17,8 +17,36 @@ import { COLOR_ROLE_GROUPS } from '../utils/constants.js'
 export default function PaletteSection({ state, dispatch }) {
   // activeKey: 'data-0'...'data-7', or a role key like 'background', or null
   const [activeKey, setActiveKey] = useState(null)
+  const [dragFromIdx, setDragFromIdx] = useState(null)
+  const [dragOverIdx, setDragOverIdx] = useState(null)
+  const dragNode = useRef(null)
 
   const toggle = (key) => setActiveKey(prev => prev === key ? null : key)
+
+  const handleDragStart = (e, i) => {
+    setDragFromIdx(i)
+    dragNode.current = e.currentTarget
+    setTimeout(() => { if (dragNode.current) dragNode.current.style.opacity = '0.4' }, 0)
+  }
+
+  const handleDragEnter = (i) => {
+    if (i !== dragFromIdx) setDragOverIdx(i)
+  }
+
+  const handleDragEnd = () => {
+    if (dragNode.current) dragNode.current.style.opacity = ''
+    dragNode.current = null
+    if (dragFromIdx !== null && dragOverIdx !== null && dragFromIdx !== dragOverIdx) {
+      const reordered = [...state.dataColors]
+      const [moved] = reordered.splice(dragFromIdx, 1)
+      reordered.splice(dragOverIdx, 0, moved)
+      dispatch({ type: 'SET_ALL_DATA_COLORS', payload: reordered })
+      // Keep the active picker following the dragged swatch
+      if (activeKey === `data-${dragFromIdx}`) setActiveKey(`data-${dragOverIdx}`)
+    }
+    setDragFromIdx(null)
+    setDragOverIdx(null)
+  }
 
   return (
     <div className="space-y-6">
@@ -53,16 +81,28 @@ export default function PaletteSection({ state, dispatch }) {
               const b = parseInt(color.slice(5,7),16)/255
               return 0.2126*r + 0.7152*g + 0.0722*b > 0.55
             })()
+            const isDragTarget = dragOverIdx === i && dragFromIdx !== i
             return (
-              <div key={key} className="flex flex-col gap-1">
+              <div
+                key={key}
+                className="flex flex-col gap-1 select-none"
+                draggable
+                onDragStart={e => handleDragStart(e, i)}
+                onDragEnter={() => handleDragEnter(i)}
+                onDragOver={e => e.preventDefault()}
+                onDragEnd={handleDragEnd}
+                style={{ cursor: 'grab' }}
+              >
                 <button
                   onClick={() => toggle(key)}
-                  title={`Edit series ${i + 1}`}
-                  className="w-full h-20 rounded-xl border relative transition-transform hover:scale-[1.03]"
+                  title={`Edit series ${i + 1} — drag to reorder`}
+                  className="w-full h-20 rounded-xl border relative"
                   style={{
                     background: color,
-                    borderColor: activeKey === key ? 'var(--accent)' : 'rgba(0,0,0,0.08)',
-                    boxShadow: activeKey === key ? '0 0 0 2px var(--accent)' : '0 1px 3px rgba(0,0,0,0.08)',
+                    borderColor: isDragTarget ? 'var(--accent)' : activeKey === key ? 'var(--accent)' : 'rgba(0,0,0,0.08)',
+                    boxShadow: isDragTarget ? '0 0 0 2px var(--accent)' : activeKey === key ? '0 0 0 2px var(--accent)' : '0 1px 3px rgba(0,0,0,0.08)',
+                    outline: isDragTarget ? '2px dashed var(--accent)' : 'none',
+                    outlineOffset: '2px',
                   }}
                 >
                   <span
