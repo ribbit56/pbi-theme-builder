@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "logo-preview",
+      "runtimeExecutable": "py",
+      "runtimeArgs": ["-m", "http.server", "8503", "--directory", "C:/Users/benwh/Documents/Projects/ccsemanticmodeldocumenter/logo"],
+      "port": 8503
+    },
+    {
+      "name": "pbi-theme-builder",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 5173
+    },
+    {
+      "name": "pbix-documenter",
+      "runtimeExecutable": "py",
+      "runtimeArgs": ["-m", "streamlit", "run", "C:/Users/benwh/Documents/Projects/ccsemanticmodeldocumenter/app.py", "--server.headless", "true", "--server.port", "8502", "--browser.gatherUsageStats", "false", "--server.maxUploadSize", "500"],
+      "port": 8502
+    }
+  ]
+}
